@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
 The data for this assignment can be downloaded from the course web site:
@@ -20,40 +20,45 @@ The variables included in this dataset are:
 
 + interval: Identifier for the 5-minute interval in which measurement was taken
 
-## 1. What is mean total number of steps taken per day?
+# Loading and preprocessing the data
 
+#### 1. Load the data:
 ```{r}
-library(ggplot2)
-
 activity <- read.csv("activity.csv")
-activityNoNA <- activity[ !is.na(activity$steps), ]
+```
 
+#### 2. Process the data, i.e. first remove missing values and format the date:
+```{r}
+activity$date = as.Date(activity$date)
+activityNoNA <- activity[ !is.na(activity$steps), ]
+```
+
+# What is mean total number of steps taken per day?
+
+#### 1. Total number of steps taken per (ignoring missing values for now):
+```{r}
 datesSum <- with( activityNoNA, aggregate(steps, list(date), sum ) ) 
 colnames(datesSum) <- c("date","sum")
-
+sum(datesSum$sum )
 ```
-Total number of steps taken per day:
+
+#### 2. Histogram of the total number of steps taken each day:
 ```{r}
-print ( sum (datesSum$sum ) )
+hist(datesSum$sum, main = " Distribution of Daily Number of Steps\n(missing values removed)", col="gray", xlab="Number of Steps / Day", ylim = c(0,35))
 ```
-Note: the missing values in the dataset are ignored for now.
 
-Histogram of the total number of steps taken each day:
+#### 3. Mean and median:
+Mean of the total number of steps taken per day:
 ```{r}
-qplot ( as.Date(datesSum$date), datesSum$sum , xlab="Date in 2012", ylab="Total number of steps") + geom_col()
+mean( datesSum$sum )
 ```
 
-Mean of the total number of steps taken per day: 
+Median of the total number of steps taken per day:
 ```{r}
-print ( mean (datesSum$sum ) )
+median( datesSum$sum )
 ```
 
-Median of the total number of steps taken per day: 
-```{r}
-print ( median (datesSum$sum ) )
-```
-
-## 2. What is the average daily activity pattern?
+# What is the average daily activity pattern?
 
 ```{r}
 ramp1to288 <- 1:288
@@ -77,20 +82,21 @@ segments( iWithMaxSteps,0, iWithMaxSteps, maxNumSteps, col = "red")
 
 The 5-minute interval which, on average across all the days in the dataset, contains the maximum number of steps is the 
 ```{r, results='asis'}
-cat( iWithMaxSteps )
+cat(iWithMaxSteps)
 ```
-th.
+'th.
 
-## 3. Imputing missing values
-### 1. Total number of missing values (i.e. number of rows with \color{red}{\verb|NA|}NAs) in the dataset = 
+# Imputing missing values
+
+#### 1. Total number of missing values (i.e. number of rows with \color{red}{\verb|NA|}NAs) in the dataset:
 ```{r, results='asis'}
-cat( sum(is.na( activity$steps )) )
+sum(is.na( activity$steps ))
 ```
 
-### 2. Strategy for filling in all of the missing values in the dataset: 
-if a value is NA we replace it by the mean for that 5-minute interval accross all days.
+#### 2. Strategy for filling in all of the missing values in the dataset: 
+If a value is NA we replace it by the mean for that 5-minute interval accross all days.
 
-### 3. Creating a new dataset that is equal to the original dataset but with the missing data filled in:
+#### 3. Creating a new dataset that is equal to the original dataset but with the missing data filled in:
 ```{r, results='asis', echo = TRUE}
 activityNAimputed <- activity
 
@@ -107,35 +113,35 @@ datesSumImputed <- with( activityNAimputed, aggregate(steps, list(date), sum ) )
 colnames(datesSumImputed) <- c("date","sum")
 ```
 
-Total number of steps taken per day = 
+Total number of steps taken per day:
 ```{r}
-cat ( sum (datesSumImputed$sum ) )
+sum(datesSumImputed$sum)
 ```
 
-Histogram of the total number of steps taken each day:
+#### 4. Histogram of the total number of steps taken each day:
 ```{r}
-qplot ( as.Date(datesSumImputed$date), datesSumImputed$sum , xlab="Date in 2012", ylab="Total number of steps") + geom_col()
+hist(datesSumImputed$sum, main = "Frequency Distribution of Daily Number of Steps\n(imputed missing values)", col="gray", xlab="Number of Steps / Day", ylim = c(0,35))
 ```
 
-Mean of the total number of steps taken per day = 
+Mean of the total number of steps taken per day:
 ```{r}
-cat ( mean (datesSumImputed$sum ) )
+mean(datesSumImputed$sum )
 ```
 
 Median of the total number of steps taken per day = 
 ```{r}
-cat ( median (datesSumImputed$sum ) )
+median(datesSumImputed$sum )
 ```
 
 Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
 
 
-## 4. Are there differences in activity patterns between weekdays and weekends?
-1. Creating a new factor variable "dayType" in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day:
+# Are there differences in activity patterns between weekdays and weekends?
+#### 1. Creating a new factor variable "dayType" in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day:
 ```{r, echo = TRUE}
 
 dayType <- function(x){
-    day <- weekdays ( as.Date( x ) )
+    day <- weekdays ( x )
     if ( day == "Saturday" || day == "Sunday" ){
         return("weekend") 
     } else {
@@ -145,7 +151,7 @@ dayType <- function(x){
 activityNAimputed$dayType <- sapply( activityNAimputed$date, dayType )
 ```
 
-2. Make a panel plot containing a time series plot (i.e. \color{red}{\verb|type = "l"|}type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). 
+#### 2. Make a panel plot containing a time series plot (i.e. \color{red}{\verb|type = "l"|}type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). 
 ```{r, echo = TRUE}
 library(lattice)
 
@@ -157,7 +163,7 @@ avgNumSteps_WE <- ramp1to288
 avgNumSteps_WD <- ramp1to288
 for ( i in ramp1to288 ) {
     currInterval <- activityNAimputed[ activityNAimputed$interval == oneDayIntervals[i], ]
-    currDay <- weekdays( as.Date(currInterval$date) )
+    currDay <- weekdays( currInterval$date )
     avgNumSteps_WE[i] <- mean( currInterval[ currInterval$dayType == "weekend", ]$steps )
     avgNumSteps_WD[i] <- mean( currInterval[ currInterval$dayType == "weekday", ]$steps )
 }
@@ -166,8 +172,7 @@ WD_WE <- ts( cbind(wd = avgNumSteps_WD, we= avgNumSteps_WE) )
 
 xyplot(WD_WE, screens = list(wd="weekday", we="weekend"),
            xlab = "Interval",
-           ylab = "Number of steps",
-        xlim = oneDayIntervals)
+           ylab = "Number of steps")
 
 
 ```
