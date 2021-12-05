@@ -44,7 +44,7 @@ sum(datesSum$sum )
 
 #### 2. Histogram of the total number of steps taken each day:
 ```{r}
-hist(datesSum$sum, main = " Distribution of Daily Number of Steps\n(missing values removed)", col="gray", xlab="Number of Steps / Day", ylim = c(0,35))
+hist(datesSum$sum, main = " Distribution of Daily Number of Steps\n(missing values removed)", col="gray", xlab="Number of Steps / Day", breaks = 20)
 ```
 
 #### 3. Mean and median:
@@ -81,10 +81,13 @@ segments( iWithMaxSteps,0, iWithMaxSteps, maxNumSteps, col = "red")
 ```
 
 The 5-minute interval which, on average across all the days in the dataset, contains the maximum number of steps is the 
-```{r, results='asis'}
-cat(iWithMaxSteps)
+```{r, results='asis', echo = FALSE}
+cat(  iWithMaxSteps )
 ```
-'th.
+th, that's:
+```{r, results='asis'}
+cat( "interval number ",activityNoNA[ iWithMaxSteps,]$interval, "." )
+```
 
 # Imputing missing values
 
@@ -120,7 +123,7 @@ sum(datesSumImputed$sum)
 
 #### 4. Histogram of the total number of steps taken each day:
 ```{r}
-hist(datesSumImputed$sum, main = "Frequency Distribution of Daily Number of Steps\n(imputed missing values)", col="gray", xlab="Number of Steps / Day", ylim = c(0,35))
+hist(datesSumImputed$sum, main = "Frequency Distribution of Daily Number of Steps\n(imputed missing values)", col="gray", xlab="Number of Steps / Day", breaks = 20)
 ```
 
 Mean of the total number of steps taken per day:
@@ -133,12 +136,14 @@ Median of the total number of steps taken per day =
 median(datesSumImputed$sum )
 ```
 
-Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+These means don't differ from the first part of the assignment, because we're imputing NAs using the mean for each interval (adding an item to a serie with the value of the mean won't change the mean). The new median is almost the same as the previous one, because the original mean was equal the median.
+
+So in this case the impact of imputing missing data on the estimates of the total daily number of steps is negligible.
 
 
 # Are there differences in activity patterns between weekdays and weekends?
 #### 1. Creating a new factor variable "dayType" in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day:
-```{r, echo = TRUE}
+```{r}
 
 dayType <- function(x){
     day <- weekdays ( x )
@@ -151,10 +156,8 @@ dayType <- function(x){
 activityNAimputed$dayType <- sapply( activityNAimputed$date, dayType )
 ```
 
-#### 2. Make a panel plot containing a time series plot (i.e. \color{red}{\verb|type = "l"|}type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). 
-```{r, echo = TRUE}
-library(lattice)
-
+#### 2. Panel plot containing a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis): 
+```{r}
 ramp1to288 <- 1:288
 oneDayIntervals <- activity$interval[ ramp1to288 ]
 avgNumStepsNAimputed <- ramp1to288
@@ -170,6 +173,7 @@ for ( i in ramp1to288 ) {
 
 WD_WE <- ts( cbind(wd = avgNumSteps_WD, we= avgNumSteps_WE) )
 
+library(lattice)
 xyplot(WD_WE, screens = list(wd="weekday", we="weekend"),
            xlab = "Interval",
            ylab = "Number of steps")
@@ -177,3 +181,4 @@ xyplot(WD_WE, screens = list(wd="weekday", we="weekend"),
 
 ```
 
+On weekdays there are more steps earlier in the day and a morning peak, probably as the person wakes up early and walks to work. The steps then come down until a second peak in the late afternoon, possibly as the person makes her way home from her worplace. On weekends the steps begin later in the morninga and stay high with multiple peaks during the day, as the person is lilely sitting less at her desk.  We observe more steps later in the evenings on weekends, although it may be more intersting to compare Friday & Saturday evenings vs the other evenings, because the weekend pattern may typically start Friday after work and stop Sunday evening at people prepare for the workweek.   
